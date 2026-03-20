@@ -1,5 +1,6 @@
 package main
 
+// a comment
 import (
 	"fmt"
 	"log"
