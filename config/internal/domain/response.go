@@ -1,0 +1,38 @@
+package domain
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+type APIResponse struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   *APIError   `json:"error,omitempty"`
+}
+
+type APIError struct {
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+}
+
+func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(APIResponse{
+		Success: status < 400,
+		Data:    data,
+	})
+}
+
+func WriteError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(APIResponse{
+		Success: false,
+		Error: &APIError{
+			Message: message,
+			Code:    status,
+		},
+	})
+}
