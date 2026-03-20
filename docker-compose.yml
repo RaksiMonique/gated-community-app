@@ -1,0 +1,24 @@
+Act as a senior software architect.
+
+Design the architecture for a multi-tenant gated community management system using:
+- Go backend
+- Svelte frontend
+- PostgreSQL database
+- Tailwind CSS
+
+Requirements:
+- Multi-community support
+- Role-based access: admin, resident, security
+- Mobile-first design
+- REST API
+- Scalable and secure
+- Suitable for a SaaS product
+
+Tasks:
+1. Propose overall system architecture
+2. Define backend folder structure in Go
+3. Define frontend folder structure in Svelte
+4. Define database design approach in PostgreSQL
+5. Recommend key packages/libraries for Go and Svelte
+6. Explain how multi-tenancy should be enforced
+7. Identify major technical risks and how to mitigate them
