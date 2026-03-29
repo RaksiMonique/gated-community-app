@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* --- Layout Rules --- */
+  .layout-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+  }
+
+  /* --- Cards --- */
+  .card {
+    @apply bg-white rounded-[1.5rem] border border-slate-100 shadow-sm p-6 transition-all hover:shadow-md;
+  }
+
+  /* --- Interactive: Buttons --- */
+  .btn {
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-600/20;
+  }
+  .btn-secondary {
+    @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+  }
+
+  /* --- Inputs --- */
+  .input-field {
+    @apply w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-600 focus:ring-indigo-600 transition-colors;
+  }
+
+  /* --- Badges --- */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest;
+  }
+  .badge-success { @apply bg-emerald-100 text-emerald-700; }
+  .badge-warning { @apply bg-amber-100 text-amber-700; }
+  .badge-danger { @apply bg-rose-100 text-rose-700; }
+
+  /* --- Tables --- */
+  .data-table {
+    @apply min-w-full divide-y divide-slate-100;
+  }
+  .data-table th {
+    @apply bg-slate-50 px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400;
+  }
+  .data-table td {
+    @apply whitespace-nowrap px-6 py-4 text-sm text-slate-600 font-medium;
+  }
+}
+
+body {
+  @apply bg-slate-50 font-sans text-slate-900;
+}

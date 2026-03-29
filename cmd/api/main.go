@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	log.Println("In app")
 	// 1. Load Config
 	cfg := config.LoadConfig()
 
@@ -21,7 +20,7 @@ func main() {
 	defer dbPool.Close()
 
 	// 3. Setup Router
-	router := routes.ConfigureRoutes()
+	router := routes.ConfigureRoutes(dbPool)
 
 	// 4. Start Server
 	serverAddr := fmt.Sprintf(":%s", cfg.Port)
