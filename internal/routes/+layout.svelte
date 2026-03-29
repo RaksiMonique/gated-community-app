@@ -1,11 +1,38 @@
 <script>
+  import { onMount } from 'svelte';
+  import { user as authStore } from '$lib/stores/auth';
   import "./app.css";
-  import NotificationDropdown from "../handlers/NotificationDropdown.svelte";
+  import NotificationDropdown from "$handlers/NotificationDropdown.svelte";
 
-  // Mocking SvelteKit's $page store for a standard SPA setup
-  let currentPath = window.location.pathname;
+  // Import your page components to "route" them manually
+  import AdminDashboard from '../../web/src/routes/+page.svelte';
+  import SecurityScanner from './+page.svelte';
+  // Import other pages as you create them
+  // import MaintenancePage from '../database/+page.svelte';
 
-  let user = { role: 'ADMIN', name: 'Admin User' };
+  let { children } = $props();
+
+  // Reactive path tracking for a standalone SPA
+  let currentPath = $state(typeof window !== 'undefined' && window.location.pathname !== '/' ? window.location.pathname : '/admin/dashboard');
+
+  onMount(() => {
+    const handlePopState = () => {
+      currentPath = window.location.pathname;
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  });
+
+  // This can be toggled between 'ADMIN', 'RESIDENT', or 'SECURITY' to preview views
+  let user = $derived($authStore || { role: 'ADMIN', name: 'Admin User' });
+
+  // Simple Router Mapping
+  const routes = {
+    '/': SecurityScanner,
+    '/dashboard': AdminDashboard,
+    '/admin/dashboard': AdminDashboard,
+    '/security/scanner': SecurityScanner,
+  };
 
   const adminItems = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -26,9 +53,17 @@
     { name: 'Logs', href: '/security/history', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
   ];
 
-  $: navItems = user.role === 'ADMIN' 
+  let navItems = $derived(user.role === 'ADMIN' 
     ? adminItems 
-    : (user.role === 'SECURITY' ? securityItems : residentItems);
+    : (user.role === 'SECURITY' ? securityItems : residentItems)
+  );
+
+  function navigate(href) {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', href);
+      currentPath = href;
+    }
+  }
 </script>
 
 <div class="flex min-h-screen">
@@ -42,12 +77,16 @@
     <nav class="flex-1 px-4 space-y-1">
       <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2 mb-4">Main Menu</p>
       {#each navItems as item}
-        <a href={item.href} class="flex items-center px-4 py-3 rounded-xl transition-all font-bold text-sm { currentPath === item.href ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }">
+        <button 
+          type="button"
+          onclick={() => navigate(item.href)}
+          class="w-full flex items-center px-4 py-3 rounded-xl transition-all font-bold text-sm { currentPath === item.href ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }"
+        >
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon} />
           </svg>
-          {item.name}
-        </a>
+          <span>{item.name}</span>
+        </button>
       {/each}
     </nav>
 
@@ -80,7 +119,17 @@
     </header>
 
     <div class="p-8">
-      <slot />
+      {#if children}
+        {@render children()}
+      {:else if routes[currentPath]}
+        {@const PageComponent = routes[currentPath]}
+        <PageComponent />
+      {:else}
+        <div class="bg-white rounded-2xl p-12 text-center border-2 border-dashed border-slate-100">
+          <h2 class="text-2xl font-black text-slate-900 mb-2">Viewing: {navItems.find(i => i.href === currentPath)?.name || 'Overview'}</h2>
+          <p class="text-slate-500 font-medium">The route <code>{currentPath}</code> has not been mapped in the layout router yet.</p>
+        </div>
+      {/if}
     </div>
   </main>
 </div>

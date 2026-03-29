@@ -1,6 +1,10 @@
 <script>
+  import { onMount } from 'svelte';
   import { user, logout } from '$lib/stores/auth';
-  let isMobileMenuOpen = false;
+
+  let { children } = $props();
+  let isMobileMenuOpen = $state(false);
+  let currentPath = $state(typeof window !== 'undefined' ? window.location.pathname : '/');
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: 'home' },
@@ -8,6 +12,22 @@
     { name: 'Visitors', href: '/visitors', icon: 'users' },
     { name: 'Maintenance', href: '/maintenance', icon: 'tool' },
   ];
+
+  onMount(() => {
+    const handlePopState = () => {
+      currentPath = window.location.pathname;
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  });
+
+  function navigate(e, href) {
+    if (typeof window !== 'undefined') {
+      e.preventDefault();
+      window.history.pushState({}, '', href);
+      currentPath = href;
+    }
+  }
 </script>
 
 <div class="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
@@ -24,8 +44,9 @@
       <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2 mb-4">Main Menu</p>
       {#each navItems as item}
         <a 
-          href={item.href} 
-          class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm hover:bg-slate-800 hover:text-white"
+          href={item.href}
+          onclick={(e) => navigate(e, item.href)}
+          class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm {currentPath === item.href ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white'}"
         >
           <span class="font-medium">{item.name}</span>
         </a>
@@ -33,7 +54,9 @@
     </nav>
 
     <div class="p-4 mt-auto border-t border-slate-800">
-      <button on:click={logout} class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 font-bold text-sm hover:text-white transition-colors">
+      <button 
+        onclick={logout} 
+        class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 font-bold text-sm hover:text-white transition-colors">
         <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
         <span>Logout</span>
       </button>
@@ -46,18 +69,25 @@
       <div class="w-6 h-6 bg-indigo-500 rounded flex items-center justify-center font-black text-xs italic text-white">G</div>
       <span class="font-black tracking-tighter text-slate-900 uppercase text-sm">GatedAPI</span>
     </div>
-    <button on:click={() => isMobileMenuOpen = !isMobileMenuOpen} class="p-2 text-slate-600">
+    <button onclick={() => isMobileMenuOpen = !isMobileMenuOpen} class="p-2 text-slate-600">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
     </button>
   </header>
 
   <!-- Mobile Nav Overlay -->
   {#if isMobileMenuOpen}
-    <div class="fixed inset-0 bg-slate-900/50 z-20 lg:hidden" on:click={() => isMobileMenuOpen = false}>
-      <div class="bg-white w-3/4 h-full p-6 shadow-xl" on:click|stopPropagation>
+    <div class="fixed inset-0 bg-slate-900/50 z-20 lg:hidden" onclick={() => isMobileMenuOpen = false}>
+      <div class="bg-white w-3/4 h-full p-6 shadow-xl" onclick={(e) => e.stopPropagation()}>
         <nav class="flex flex-col gap-4">
           {#each navItems as item}
-            <a href={item.href} class="text-lg font-medium text-slate-800" on:click={() => isMobileMenuOpen = false}>{item.name}</a>
+            <a 
+              href={item.href} 
+              class="text-lg font-medium text-slate-800" 
+              onclick={(e) => {
+                navigate(e, item.href);
+                isMobileMenuOpen = false;
+              }}
+            >{item.name}</a>
           {/each}
         </nav>
       </div>
@@ -69,7 +99,7 @@
     <header class="hidden lg:flex h-20 bg-white border-b border-slate-100 items-center justify-between px-8 sticky top-0 z-40">
       <div class="flex items-center gap-2">
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">System / </span>
-        <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{$page.url.pathname.split('/')[1] || 'Overview'}</span>
+        <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{currentPath.split('/')[1] || 'Overview'}</span>
       </div>
       <div class="flex items-center gap-6">
         <div class="flex items-center gap-3 border-l border-slate-100 pl-6">
@@ -87,7 +117,7 @@
     <!-- Main Content -->
     <main class="flex-1 p-4 md:p-8 overflow-y-auto">
       <!-- The dashboard content injected here will now inherit the card and button styles -->
-      <slot />
+      {@render children()}
     </main>
   </div>
 </div>

@@ -103,7 +103,27 @@ CREATE TABLE IF NOT EXISTS residents (
 CREATE TRIGGER update_residents_modtime BEFORE UPDATE ON residents 
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
--- 5. Visitors and Security Logs
+-- 5. Vendors
+CREATE TABLE IF NOT EXISTS vendors (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    community_id UUID NOT NULL REFERENCES communities(id),
+    company_name VARCHAR(255) NOT NULL,
+    category VARCHAR(100), -- 'PLUMBING', 'ELECTRICAL'
+    contact_name VARCHAR(100),
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    address TEXT,
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- 'ACTIVE', 'INACTIVE', 'PROBATION'
+    rating DECIMAL(3,2) DEFAULT 0.00,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TRIGGER update_vendors_modtime BEFORE UPDATE ON vendors 
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- 6. Visitors and Security Logs
 CREATE TABLE IF NOT EXISTS visitors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     community_id UUID NOT NULL REFERENCES communities(id),
@@ -133,26 +153,7 @@ CREATE TABLE IF NOT EXISTS security_logs (
     remarks TEXT
 );
 
--- 6. Vendors and Maintenance
-CREATE TABLE IF NOT EXISTS vendors (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    community_id UUID NOT NULL REFERENCES communities(id),
-    company_name VARCHAR(255) NOT NULL,
-    category VARCHAR(100), -- 'PLUMBING', 'ELECTRICAL'
-    contact_name VARCHAR(100),
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    address TEXT,
-    status VARCHAR(50) DEFAULT 'ACTIVE', -- 'ACTIVE', 'INACTIVE', 'PROBATION'
-    rating DECIMAL(3,2) DEFAULT 0.00,
-    notes TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TRIGGER update_vendors_modtime BEFORE UPDATE ON vendors 
-FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
-
+-- 7. Maintenance
 CREATE TABLE IF NOT EXISTS maintenance_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     community_id UUID NOT NULL REFERENCES communities(id),

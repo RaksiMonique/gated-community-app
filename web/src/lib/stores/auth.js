@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
+
+const browser = typeof window !== 'undefined';
 
 // Initialize from local storage if available
 const getStoredUser = () => {

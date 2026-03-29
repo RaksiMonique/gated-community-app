@@ -38,14 +38,14 @@ func HandleGetAdminDashboard(db *pgxpool.Pool) http.HandlerFunc {
 		// 1. Occupancy Rate: (Units with active residents / Total Units)
 		occupancyQuery := `
 			SELECT 
-				(SELECT COUNT(DISTINCT unit_id) FROM residents WHERE community_id = $1 AND status = 'ACTIVE')::float / 
-				NULLIF((SELECT COUNT(*) FROM units WHERE community_id = $1), 0) * 100`
+				COALESCE((SELECT COUNT(DISTINCT unit_id) FROM residents WHERE community_id = $1 AND status = 'ACTIVE')::float / 
+				NULLIF((SELECT COUNT(*) FROM units WHERE community_id = $1), 0) * 100, 0)`
 		db.QueryRow(r.Context(), occupancyQuery, communityID).Scan(&data.Metrics.OccupancyRate)
 
 		// 2. Payment Collection Rate (Current Month)
 		paymentQuery := `
 			SELECT 
-				COALESCE(SUM(paid_amount), 0) / NULLIF(SUM(amount), 0) * 100
+				COALESCE(SUM(paid_amount) / NULLIF(SUM(amount), 0) * 100, 0)
 			FROM invoices 
 			WHERE community_id = $1 AND billing_period = $2`
 		db.QueryRow(r.Context(), paymentQuery, communityID, currentMonth).Scan(&data.Metrics.PaymentCollectionRate)
